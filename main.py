@@ -16,3 +16,14 @@ DOI=<http://dx.doi.org/10.1145/2827872>
 Dataset was accessed on 27 July 2019
 
 """
+
+import os
+
+from analysis.general import run
+from constants.system import SAVE_FOLDER
+
+# Create folder for saving plots
+if not os.path.exists(SAVE_FOLDER):
+    os.makedirs(SAVE_FOLDER)
+
+run()
