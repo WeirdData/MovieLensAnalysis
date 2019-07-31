@@ -12,13 +12,21 @@ def get_movies() -> pd.DataFrame:
     """
     :return: Pandas Dataset of Movies with additional column
     """
+
+    def _extract(name: str):
+        r = name.split("(")
+        if len(r[-1].strip()) != 5:
+            return 0
+        return int(r[-1].strip().replace(")", ""))
+
     # Get Data
     with open(DATA_FOLDER + FILE_MOVIES) as f:
         d = pd.read_csv(f)
     # Isolate the year
     d[MOVIE_COL_4_YEAR] = d[MOVIE_COL_2_TITLE] \
-        .apply(lambda x: x[-6:].strip().replace("(", "").replace(")", ""))
+        .apply(lambda x: _extract(x))
 
+    d = d[d[MOVIE_COL_4_YEAR] != 0]
     return d
 
 
@@ -43,5 +51,5 @@ def get_tags() -> pd.DataFrame:
 
 
 def run():
-    d = get_tags()
+    d = get_movies()
     print(d)
