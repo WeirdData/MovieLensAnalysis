@@ -5,6 +5,8 @@ Data : July 2019
 This file contains general functions used in calculating and visualizing
 MovieLens dataset
 """
+from collections import Counter
+
 import matplotlib.pylab as plt
 import numpy as np
 from SecretColors import Palette
@@ -13,6 +15,9 @@ from helper.parser import *
 
 
 def basic_statistics():
+    """
+    Basic statistics regarding movies, rating and tags
+    """
     movies = get_movies()
     ratings = get_ratings()
     tags = get_tags()
@@ -31,6 +36,10 @@ def basic_statistics():
 
 
 def movie_ratings():
+    """
+    Shows top movies rated by users and plots histogram of average rating
+    given by users
+    """
     movies = get_movies()
     ratings = get_ratings()
     p = Palette()
@@ -70,10 +79,13 @@ def movie_ratings():
     plt.tight_layout()
     plt.savefig("{}/UserRatings.png".format(SAVE_FOLDER), format='png',
                 dpi=300)
-    # plt.show()
+    plt.show()
 
 
 def movie_rating_trend():
+    """
+    Checks trend between movie ratings and users
+    """
     movies = get_movies()
     ratings = get_ratings()
     p = Palette()
@@ -117,7 +129,10 @@ def movie_rating_trend():
     plt.show()
 
 
-def movie_and_ratings():
+def movie_ratings_year_wise():
+    """
+    Plots year wise distribution of various aspects of movies and their ratings
+    """
     p = Palette()
     movies = get_movies()
     ratings = get_ratings()
@@ -147,7 +162,7 @@ def movie_and_ratings():
 
     plt.bar(ind, k[RATING_COL_6_RATING_COUNT], color=p.blue(),
             alpha=0.7,
-            width=1.0, label="No. of ratings x $10^{-3}$")
+            width=1.0, label="No. of ratings x $10^{3}$")
 
     plt.xticks(ind[1::2], k[MOVIE_COL_4_YEAR][1::2], rotation="90")
     # plt.yscale("log")
@@ -161,7 +176,53 @@ def movie_and_ratings():
     plt.show()
 
 
+def top_tags():
+    """
+    Prints top tags used by the users and plots top categories assigned for
+    the movies
+    """
+    p = Palette()
+    tags = get_tags()
+    tags = tags.groupby(by=TAG_COL_3_TAG).count().sort_values(
+        by=TAG_COL_1_USER_ID, ascending=False)
+    print("Top tags given by users")
+    print(tags[TAG_COL_1_USER_ID].head())
+
+    movies = get_movies()
+    movies[MOVIE_COL_3_GENRES] = movies[MOVIE_COL_3_GENRES].str.split("|")
+    movies = movies[MOVIE_COL_3_GENRES]
+    c = Counter(movies.sum())
+    names = c.keys()
+    values = c.values()
+
+    zipped = sorted(zip(values, names))
+    values, names = zip(*zipped)
+    ind = range(len(values))
+    plt.barh(ind, values, color=p.aqua())
+    plt.yticks(ind, names)
+    plt.xlabel("Frequency")
+    plt.tight_layout()
+    plt.savefig("{}/TopTags.png".format(SAVE_FOLDER), format='png',
+                dpi=300)
+    plt.show()
+
+
+def movie_category_tags(category: str):
+    """
+    Check top tags for given category
+    :param category: Name of the category as present in the file
+    """
+    movies = get_movies()
+    tag = get_tags()
+    movies = movies[movies[MOVIE_COL_3_GENRES].str.contains(category)]
+    movies = movies.reset_index(drop=True)
+    z = pd.merge(movies, tag, on=MOVIE_COL_1_ID)
+    print("Top tags for the category: {}".format(category))
+    print(z[TAG_COL_3_TAG].value_counts().head(10))
+
+
 def run():
-    movie_and_ratings()
+    # movie_and_ratings()
     # d = get_movies()
-    # print(d[d[MOVIE_COL_4_YEAR]==2012].count())
+    movie_category_tags("Sci-Fi")
+    # top_tags()
