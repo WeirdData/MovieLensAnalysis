@@ -19,11 +19,14 @@ Dataset was accessed on 27 July 2019
 
 import os
 
-from analysis.general import run
-from constants.system import SAVE_FOLDER
+from analysis.clustering import run
+from constants.system import SAVE_FOLDER, OUT_FOLDER
 
 # Create folder for saving plots
 if not os.path.exists(SAVE_FOLDER):
     os.makedirs(SAVE_FOLDER)
 
+# Create folder for saving output files
+if not os.path.exists(OUT_FOLDER):
+    os.makedirs(OUT_FOLDER)
 run()

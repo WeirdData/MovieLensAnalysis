@@ -19,3 +19,6 @@ TAG_COL_1_USER_ID = "userId"
 TAG_COL_2_MOVIE_ID = "movieId"
 TAG_COL_3_TAG = "tag"
 TAG_COL_4_TIMESTAMP = "timestamp"
+
+RAW_COL_1_TAG1 = "tag1"
+RAW_COL_2_TAG2 = "tag2"
