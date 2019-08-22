@@ -22,3 +22,4 @@ TAG_COL_4_TIMESTAMP = "timestamp"
 
 RAW_COL_1_TAG1 = "tag1"
 RAW_COL_2_TAG2 = "tag2"
+RAW_COL_OCCURRENCE = "occurrence"

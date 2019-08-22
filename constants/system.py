@@ -16,3 +16,4 @@ FILE_TAGS = "tags.csv"
 
 # File generated to create tag association
 FILE_RAW_TAGS = "raw_tags.tsv"
+FILE_JOINED = "joined.tsv"

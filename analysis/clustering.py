@@ -4,17 +4,17 @@ Data : July 2019
 
 This file contains functions related to clustering
 
-I am going to use DASK (https://dask.org/) here instead pandas
+Be careful about running functions from this script. These need more memory
+than normal functions. I have tested them successfully on 12 GB RAM with i7
+processor.
 """
 
 import itertools
 
-import dask.dataframe as dd
-
 from helper.parser import *
 
 
-def generate_tag_file():
+def generate_full_tag_file():
     """
     Generates raw file containing tags association.
 
@@ -43,17 +43,38 @@ def generate_tag_file():
     file.close()
 
 
-def get_tag_association():
+def generate_tag_association_file():
     with open(OUT_FOLDER + FILE_RAW_TAGS) as f:
-        df = dd.read_csv(OUT_FOLDER + FILE_RAW_TAGS, sep="\t")
-        # df = df.groupby([RAW_COL_1_TAG1, RAW_COL_2_TAG2]).count()
-        print(df.head())
+        df = pd.read_csv(OUT_FOLDER + FILE_RAW_TAGS, delimiter="\t")
+        df = df.groupby(df.columns.tolist(),
+                        as_index=False).size().reset_index()
+        df = df.rename(columns={0: RAW_COL_OCCURRENCE})
+    tmp = "tmp"
+    df[tmp] = df.apply(lambda x: " ".join(sorted([x[RAW_COL_2_TAG2],
+                                                  x[RAW_COL_1_TAG1]])),
+                       axis=1)
+    df = df.drop_duplicates(subset=[tmp])
+    del df[tmp]
+
+    with open(OUT_FOLDER + FILE_JOINED, "w") as f:
+        print(df.to_csv(sep="\t", index=False), file=f)
 
 
-def test():
-    d = pd.DataFrame({"a": ["a", "b", "c"], "b": ["b", "b", "c"]})
-    print(d)
+def get_association():
+    with open(OUT_FOLDER + FILE_JOINED) as f:
+        data = pd.read_csv(f, delimiter="\t")
+
+    data = data.sort_values(by=RAW_COL_OCCURRENCE,
+                            ascending=False).reset_index(drop=True)
+    return data
+
+
+def search_association(terms: list):
+    data = get_association()
+    data = data[data[RAW_COL_1_TAG1].isin(terms)]
+    data = data[data[RAW_COL_2_TAG2].isin(terms)]
+    print(data)
 
 
 def run():
-    test()
+    search_association(["action", "sci-fi"])
