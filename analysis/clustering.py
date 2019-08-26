@@ -69,12 +69,21 @@ def get_association():
     return data
 
 
-def search_association(terms: list):
+def pca():
     data = get_association()
-    data = data[data[RAW_COL_1_TAG1].isin(terms)]
-    data = data[data[RAW_COL_2_TAG2].isin(terms)]
+    print(data.head())
+
+
+def visualize_term(term: str):
+    data = get_association()
+    # data[RAW_COL_OCCURRENCE] = data[RAW_COL_1_TAG1].map(str) + " " + data[
+    #     RAW_COL_2_TAG2]
+    # data = data[data[RAW_COL_OCCURRENCE].str.contains(term.lower())]
+
+    data = data[data[data == term].any(axis=1)]
+    data = data.sort_values(by=RAW_COL_OCCURRENCE, ascending=False)
     print(data)
 
 
 def run():
-    search_association(["action", "sci-fi"])
+    visualize_term("action")
