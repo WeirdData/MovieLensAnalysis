@@ -5,6 +5,6 @@
 #  https://www.kaggle.com/grouplens/movielens-20m-dataset
 
 
-from distance_wise import run
+from combined_distance import run
 
 run()
