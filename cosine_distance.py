@@ -6,6 +6,10 @@
 #
 #  Movie prediction based on cosine-distance
 
+import os
+
+import h5py
+import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -36,6 +40,9 @@ def get_movies():
         if len(_temp) == 1:
             return m
         else:
+            # Correct for 'the'
+            if ", The" in m:
+                return f"The {_temp[0].strip().replace(', The', '')}"
             return _temp[0].strip()
 
     # 'movieId', 'title', 'genres'
@@ -136,7 +143,7 @@ def generate_score(mapping, tag_score, cat_score):
     print(df.head(10))
 
 
-def run():
+def generate_data():
     # Your movie name
     desired_movie = "Jumanji"
 
@@ -148,3 +155,60 @@ def run():
     cat_dm = convert_to_distance(ratings, MOVIE_GENRES)
     ind = list(ratings[MOVIE_TITLE].values).index(desired_movie)
     generate_score(ratings, tag_dm[ind], cat_dm[ind])
+    np.savez_compressed("data/tag_matrix", tag_dm)
+    np.savez_compressed("data/genre_matrix", cat_dm)
+    ratings[RATING] = round(ratings[RATING], 4)
+    ratings[[MOVIE_TITLE, RATING]].to_csv("data/names.csv", index=False)
+    print("Analysis finished")
+
+
+def save_to_hdf5():
+    if not os.path.exists("data/tag_matrix.npz"):
+        print("Generating data")
+        generate_data()
+    tag_dm = np.load("data/tag_matrix.npz")["arr_0"]
+    cat_dm = np.load("data/genre_matrix.npz")["arr_0"]
+    with h5py.File("data/data.hdf5", "w") as f:
+        f.create_dataset("tags", data=tag_dm)
+        f.create_dataset("cats", data=cat_dm)
+
+
+def find_similar_name(name: str, df: pd.DataFrame):
+    print(f"Searching for similar1 titles like '{name}'")
+    all_titles = list(df[MOVIE_TITLE].values)
+    all_titles.append(name)
+    cv1 = CountVectorizer(analyzer="char")
+
+    k1 = cv1.fit_transform(all_titles).toarray()
+    similar = []
+    for m in range(0, len(k1) - 1):
+        dist = cosine_similarity([k1[-1], k1[m]])[0, 1]
+        if dist > 0:
+            similar.append((all_titles[m], dist))
+
+    if len(similar) == 0:
+        raise Exception(f"Failed to find similar1 title. Please check "
+                        f"spelling mistakes")
+    similar = sorted(similar, key=lambda x: x[1], reverse=True)
+    print("Following similar1 title found in current dataset...")
+    for m in [x[0] for x in similar[:10]]:
+        print(f"--> {m}")
+
+
+def run():
+    if not os.path.exists("data/data.hdf5"):
+        print("Saving to database")
+        save_to_hdf5()
+
+    desired_movie = "Spider-Man"
+    df = pd.read_csv("data/names.csv")
+    idx = df.index[df[MOVIE_TITLE] == desired_movie]
+    if idx.size == 0:
+        find_similar_name(desired_movie, df)
+        raise KeyError(f"{desired_movie} not found in current dataset.")
+    idx = idx[0]
+
+    with h5py.File("data/data.hdf5", "r") as f:
+        tag_dm = f["tags"][idx]
+        cat_dm = f["cats"][idx]
+        generate_score(df, tag_dm, cat_dm)
