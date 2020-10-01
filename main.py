@@ -5,6 +5,6 @@
 #  https://www.kaggle.com/grouplens/movielens-20m-dataset
 
 
-from cosine_distance import run
+from stats import run
 
 run()

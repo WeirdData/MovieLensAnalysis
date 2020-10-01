@@ -3,3 +3,5 @@ data/
 plots/
 *.pyc
 out/
+model/
+*.png
