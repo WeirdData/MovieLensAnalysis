@@ -14,6 +14,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+from common import get_movies
 from constants import *
 
 FILE_RATINGS = "data/temp_rating.csv"  # Path to rating.csv
@@ -26,32 +27,6 @@ def parse_ratings():
     # 'userId', 'movieId', 'rating', 'timestamp'
     df = pd.read_csv(FILE_RATINGS)
     return df
-
-
-def get_movies():
-    def _separate_year(m):
-        _temp = m.rsplit("(", 1)
-        if len(_temp) == 1:
-            return None
-        return _temp[-1].replace(")", "").strip()
-
-    def _separate_title(m):
-        _temp = m.rsplit("(", 1)
-        if len(_temp) == 1:
-            return m
-        else:
-            # Correct for 'the'
-            if ", The" in m:
-                return f"The {_temp[0].strip().replace(', The', '')}"
-            return _temp[0].strip()
-
-    # 'movieId', 'title', 'genres'
-    df = pd.read_csv(FILE_MOVIES)
-    # Remove where Genres are not listed
-    df = df[df[MOVIE_GENRES] != "(no genres listed)"]
-    df[YEAR] = df[MOVIE_TITLE].map(lambda x: _separate_year(x))
-    df[MOVIE_TITLE] = df[MOVIE_TITLE].map(lambda x: _separate_title(x))
-    return df.reset_index(drop=True)
 
 
 def parse_tags():

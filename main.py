@@ -5,6 +5,6 @@
 #  https://www.kaggle.com/grouplens/movielens-20m-dataset
 
 
-from stats import run
+from keras import run
 
 run()

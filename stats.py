@@ -21,6 +21,9 @@ FILE_TAGS = "data/tag.csv"  # Path to tag.cdv
 
 
 def get_stats():
+    """
+     Generates basic statistics of the MovieLens database
+     """
     df = get_movies()
     df = df.fillna("")
     df[YEAR] = df[YEAR].map(
@@ -36,6 +39,9 @@ def get_stats():
 
 
 def plot_flow():
+    """
+    Generates the flow diagram of the Content-based and user-based filtering
+    """
     p = Palette()
     g = pgv.AGraph(
         directed=True, dpi=150, pad=0.1,
@@ -84,6 +90,9 @@ def plot_flow():
 
 
 def plot_movies():
+    """
+    Generates histogram of movies available in MovieLens Database
+    """
     p = Palette()
     plt.rcParams['axes.facecolor'] = p.gray(shade=10)
     df = get_movies()
@@ -92,7 +101,7 @@ def plot_movies():
     df[YEAR] = df[YEAR].map(
         lambda x: "".join([y for y in x if str(y).isnumeric()]))
     df[YEAR] = pd.to_numeric(df[YEAR])
-    df = df[df[YEAR] < 2020]
+    df = df[df[YEAR] < 3020]
     total_movies = len(df)
     df = df.groupby(by=YEAR).count().sort_index().reset_index()
     data = dict(zip(df[YEAR], df[MOVIE_ID]))
@@ -116,5 +125,73 @@ def plot_movies():
     plt.show()
 
 
+def _generate_label(main_label, sub_label, words=4):
+    n = f"<{main_label}<BR/><FONT POINT-SIZE='10'>"
+    c = 0
+    for m in sub_label.split(" "):
+        n += f" {m}"
+        if c == words:
+            n += " <BR/> "
+            c = 0
+        else:
+            c += 1
+
+    return f"{n}</FONT>>"
+
+
+def draw_distance_flow():
+    """
+    Draws flow diagram of the content-based filtering
+    """
+    p = Palette()
+    g = pgv.AGraph(
+        dpi=150, pad=0.1,
+        directed=True, fontname="IBM Plex Sans"
+    )
+
+    g.node_attr["style"] = "filled"
+    g.node_attr["shape"] = "box"
+    g.node_attr["fillcolor"] = p.green(shade=20)
+    g.node_attr["margin"] = "0.1"
+
+    g.add_node("a",
+               label=_generate_label(
+                   "LabelEncoder",
+                   "converts arbitrary words to categorical variables", 3))
+
+    g.add_node("b", label=_generate_label(
+        "CountVector",
+        "counts the number of words of each category"))
+
+    g.add_node("c1", label="tags", shape="plain", fillcolor=None)
+    g.add_node("c2", label="categories", shape="plain", fillcolor=None)
+    g.add_node("c3", label="rating", shape="plain", fillcolor=None)
+
+    g.add_node("d", label=_generate_label(
+        "Distance Matrix", "cosine distance"))
+
+    g.add_node("e", label=_generate_label(
+        "Sort and Filter", "according to distance w.r.t. input", 2))
+
+    g.add_node("f", label="Prediction", fillcolor=p.blue(shade=30))
+
+    g.add_edge("c", "a", minlen=3)
+    g.add_edge("a", "b")
+    g.add_edge("b", "d")
+    g.add_edge("d", "e")
+    g.add_edge("e", "f", minlen=3)
+
+    g.add_edge("c1", "c")
+    g.add_edge("c2", "c")
+    g.add_edge("c3", "c")
+    g.add_node("c", label="Bag of Words", fillcolor=p.blue(shade=30))
+    g.add_node("c")
+
+    g.add_subgraph(["c", "a"], rank="same")
+    g.add_subgraph(["e", "f"], rank="same")
+    g.layout("dot")
+    g.draw("plot.png")
+
+
 def run():
-    plot_flow()
+    draw_distance_flow()
