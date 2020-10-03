@@ -13,7 +13,7 @@ from SecretColors import Palette
 from matplotlib import rc
 
 from constants import *
-from cosine_distance import get_movies
+from common import get_movies
 
 FILE_RATINGS = "data/rating.csv"  # Path to rating.csv
 FILE_MOVIES = "data/movie.csv"  # Path to movie.csv
@@ -193,5 +193,46 @@ def draw_distance_flow():
     g.draw("plot.png")
 
 
+def draw_network_flow():
+    """
+    Draws flow diagram for user-based filtering
+    """
+    p = Palette()
+    g = pgv.AGraph(
+        dpi=150, pad=0.1, rankdir="LR",
+        directed=True, fontname="IBM Plex Sans"
+    )
+
+    g.node_attr["style"] = "filled"
+    g.node_attr["shape"] = "box"
+    g.node_attr["fillcolor"] = p.green(shade=20)
+    g.node_attr["margin"] = "0.1"
+    g.node_attr["height"] = 0.9
+
+    g.add_node("a1", label="user-id", shape="plain", fillcolor=None)
+    g.add_node("a2", label="movie-id", shape="plain", fillcolor=None)
+
+    g.add_node("a",
+               label=_generate_label(
+                   "User-Movie Matrix",
+                   "Generates vectors representing user and movies", 3),
+               fillcolor=p.blue(shade=30))
+    g.add_node("b",
+               label="Neural Network")
+
+    g.add_node("c",
+               label=_generate_label(
+                   "Prediction",
+                   "Rating of input movie based on user's rating history", 3),
+               fillcolor=p.blue(shade=30))
+
+    g.add_edge("a", "b")
+    g.add_edge("b", "c")
+    g.add_edge("a1", "a")
+    g.add_edge("a2", "a")
+    g.layout("dot")
+    g.draw("plot.png")
+
+
 def run():
-    draw_distance_flow()
+    draw_network_flow()

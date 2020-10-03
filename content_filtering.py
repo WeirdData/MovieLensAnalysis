@@ -175,7 +175,7 @@ def run():
         print("Saving to database")
         save_to_hdf5()
 
-    desired_movie = "Spider-Man"
+    desired_movie = "Memento"
     df = pd.read_csv("data/names.csv")
     idx = df.index[df[MOVIE_TITLE] == desired_movie]
     if idx.size == 0:

@@ -125,7 +125,11 @@ def _normalize_row(row, last):
     for m, r in zip(movies, ratings):
         tmp_movies[m] = 1
         tmp_ratings[m] = r
-    tmp = np.hstack([tmp_movies, tmp_ratings])
+
+    # Using multiply to take care of both rating and watched movie at the
+    # same time. Else it will create disparity while ranking
+    # TODO: Need better strategy here.
+    tmp = np.multiply(tmp_movies, tmp_ratings)
     row["temp"] = tmp
     return row
 
@@ -145,7 +149,8 @@ def find_closest_user(movies, ratings):
     for m, r in zip(movies, ratings):
         tmp_movies[m] = 1
         tmp_rating[m] = r / 5
-    input_data = np.hstack([tmp_movies, tmp_rating])
+
+    input_data = np.multiply(tmp_movies, tmp_rating)
 
     data = data.groupby(by=USER_LABEL).agg(list).reset_index()
     current_user = 0
@@ -206,6 +211,7 @@ def analyse(movie_list, rating_list):
     mv = mv[mv[MOVIE_ID].isin(all_movies)]
     mv = mv[~mv[MOVIE_TITLE].isin(original_movies)]
     mv[RATING] = mv[MOVIE_ID].map(lambda x: rating_map[x])
+    mv = mv.sort_values(by=RATING, ascending=False)
     ratings = mv[RATING].values
     mv = mv[MOVIE_TITLE].values
     print("Recommended Movies [score]")
@@ -216,5 +222,5 @@ def analyse(movie_list, rating_list):
 def run():
     # train_model()
     movies = ["Jumanji", "Toy Story"]
-    ratings = [4.5, 1]
+    ratings = [3.4, 5]
     analyse(movies, ratings)
